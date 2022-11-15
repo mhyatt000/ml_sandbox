@@ -17,8 +17,7 @@ def update_D(X, Z, D, G, loss, trainer_D):
     # Do not need to compute gradient for `G`, detach it from computing gradients.
     fake_Y = D(fake_X.detach())
     loss_D = (
-        loss(real_Y, ones.reshape(real_Y.shape))
-        + loss(fake_Y, zeros.reshape(fake_Y.shape))
+        loss(real_Y, ones.reshape(real_Y.shape)) + loss(fake_Y, zeros.reshape(fake_Y.shape))
     ) / 2
     loss_D.backward()
     trainer_D.step()
@@ -54,9 +53,11 @@ def train(D, G, data_iter, num_epochs, lr_D, lr_G, latent_dim, data):
     trainer_G = torch.optim.Adam(G.parameters(), lr=lr_G)
     # animator = d2l.Animator(xlabel='epoch', ylabel='loss', xlim=[1, num_epochs], nrows=2, figsize=(5, 5), legend=['discriminator', 'generator'])
     # animator.fig.subplots_adjust(hspace=0.3)
+
     for epoch in tqdm(range(num_epochs)):
         # Train one epoch
         # metric = d2l.Accumulator(3)  # loss_D, loss_G, num_examples
+
         for X in data_iter:
             batch_size = X.shape[0]
             Z = torch.normal(0, 1, size=(batch_size, latent_dim))
@@ -64,6 +65,7 @@ def train(D, G, data_iter, num_epochs, lr_D, lr_G, latent_dim, data):
         # Visualize generated examples
         Z = torch.normal(0, 1, size=(100, latent_dim))
         fake_X = G(Z).detach().numpy()
+
         # animator.axes[1].cla()
         # animator.axes[1].scatter(data[:, 0], data[:, 1])
         # animator.axes[1].scatter(fake_X[:, 0], fake_X[:, 1])
@@ -82,21 +84,32 @@ def main():
     b = torch.tensor([1, 2])
     data = torch.matmul(X, A) + b
 
-    plt.scatter(data[:100, (0)].detach().numpy(), data[:100, (1)].detach().numpy(), label='real')
+    plt.scatter(data[:100, (0)].detach().numpy(), data[:100, (1)].detach().numpy(), label="real")
     print(f"The covariance matrix is\n{torch.matmul(A.T, A)}")
     # plt.show()
 
     batch_size = 8
 
-    load_tensor = lambda t, bs: torch.reshape( t[: bs * (len(t) // bs), ...], (bs, (len(t) // bs), *t.shape[1:]))
+    load_tensor = lambda t, bs: torch.reshape(
+        t[: bs * (len(t) // bs), ...], (bs, (len(t) // bs), *t.shape[1:])
+    )
     data_iter = load_tensor(data, batch_size)
     print(data_iter.shape)
 
-    G = nn.Sequential(nn.Linear(2, 2))
-    D = nn.Sequential( nn.Linear(2, 5), nn.Tanh(), nn.Linear(5, 3), nn.Tanh(), nn.Linear(3, 1))
+    G = nn.Sequential(
+        nn.Linear(2, 2),
+    )
+
+    D = nn.Sequential(
+        nn.Linear(2, 5),
+        nn.Tanh(),
+        nn.Linear(5, 3),
+        nn.Tanh(),
+        nn.Linear(3, 1),
+    )
 
     lr_D, lr_G, latent_dim, num_epochs = 0.05, 0.005, 2, 1
-    train( D, G, data_iter, num_epochs, lr_D, lr_G, latent_dim, data[:100].detach().numpy())
+    train(D, G, data_iter, num_epochs, lr_D, lr_G, latent_dim, data[:100].detach().numpy())
 
     "try to make some samples"
 
@@ -105,7 +118,7 @@ def main():
 
     a, b = zip(*fake_X.tolist())
 
-    plt.scatter(a, b, label='fake')
+    plt.scatter(a, b, label="fake")
     plt.legend()
     plt.show()
 
