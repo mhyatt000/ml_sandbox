@@ -16,14 +16,7 @@ from utils.utils_distributed_sampler import DistributedSampler
 from utils.utils_distributed_sampler import get_dist_info, worker_init_fn
 
 
-def get_dataloader(
-    root_dir,
-    local_rank,
-    batch_size,
-    dali = False,
-    seed = 2048,
-    num_workers = 2,
-    ) -> Iterable:
+def get_dataloader( root_dir, local_rank, batch_size, dali = False, seed = 2048, num_workers = 2):
 
     rec = os.path.join(root_dir, 'train.rec')
     idx = os.path.join(root_dir, 'train.idx')
@@ -78,6 +71,7 @@ def get_dataloader(
 class BackgroundGenerator(threading.Thread):
     def __init__(self, generator, local_rank, max_prefetch=6):
         super(BackgroundGenerator, self).__init__()
+
         self.queue = Queue.Queue(max_prefetch)
         self.generator = generator
         self.local_rank = local_rank
@@ -107,6 +101,7 @@ class DataLoaderX(DataLoader):
 
     def __init__(self, local_rank, **kwargs):
         super(DataLoaderX, self).__init__(**kwargs)
+
         self.stream = torch.cuda.Stream(local_rank)
         self.local_rank = local_rank
 
@@ -136,12 +131,14 @@ class DataLoaderX(DataLoader):
 class MXFaceDataset(Dataset):
     def __init__(self, root_dir, local_rank):
         super(MXFaceDataset, self).__init__()
+
         self.transform = transforms.Compose(
             [transforms.ToPILImage(),
              transforms.RandomHorizontalFlip(),
              transforms.ToTensor(),
              transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
              ])
+
         self.root_dir = root_dir
         self.local_rank = local_rank
         path_imgrec = os.path.join(root_dir, 'train.rec')
@@ -175,6 +172,7 @@ class MXFaceDataset(Dataset):
 class SyntheticDataset(Dataset):
     def __init__(self):
         super(SyntheticDataset, self).__init__()
+
         img = np.random.randint(0, 255, size=(112, 112, 3), dtype=np.int32)
         img = np.transpose(img, (2, 0, 1))
         img = torch.from_numpy(img).squeeze(0).float()
